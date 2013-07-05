@@ -62,7 +62,6 @@ var loadChecks = function(checksfile) {
 
 var loadHtmlData = function (htmlfile, callback) {
     if (isValidUrl(htmlfile.toString())) {
-      console.log("Retrieving remote file...");
       restler.get(htmlfile.toString()).on('complete', function (data, response) {
         if (response == null || response.statusCode != 200) {
           console.log('An error occured while retrieving the file. Exiting.');
