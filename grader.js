@@ -24,6 +24,7 @@ References:
 var fs = require('fs');
 var program = require('commander');
 var cheerio = require('cheerio');
+var restler = require('restler');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
 
@@ -36,33 +37,69 @@ var assertFileExists = function(infile) {
     return instr;
 };
 
-var cheerioHtmlFile = function(htmlfile) {
-    return cheerio.load(fs.readFileSync(htmlfile));
+var isValidUrl = function(url) {
+  var regEx = /^(https?:\/\/)([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+  return regEx.test(url);
+}
+
+var assertValidUrl = function(infile) {
+  var instr = infile.toString();
+  if (isValidUrl(instr)) {
+    return instr;
+  } else {
+    console.log("%s is not a valid URL. Exiting.", instr);
+    process.exit(1);
+  }
+}
+
+var cheerioHtmlData = function(htmldata) {
+    return cheerio.load(htmldata);
 };
 
 var loadChecks = function(checksfile) {
     return JSON.parse(fs.readFileSync(checksfile));
 };
 
-var checkHtmlFile = function(htmlfile, checksfile) {
-    $ = cheerioHtmlFile(htmlfile);
-    var checks = loadChecks(checksfile).sort();
-    var out = {};
-    for(var ii in checks) {
-        var present = $(checks[ii]).length > 0;
-        out[checks[ii]] = present;
+var loadHtmlData = function (htmlfile, callback) {
+    if (isValidUrl(htmlfile.toString())) {
+      console.log("Retrieving remote file...");
+      restler.get(htmlfile.toString()).on('complete', function (data, response) {
+        if (response == null || response.statusCode != 200) {
+          console.log('An error occured while retrieving the file. Exiting.');
+          process.exit(1);
+        } else {
+          var cheerioData = cheerioHtmlData(data);
+          callback(cheerioData);
+        }
+      });
+    } else {
+      var data = cheerioHtmlData(fs.readFileSync(htmlfile.toString()));
+      callback(data);
     }
-    return out;
+}
+
+var checkHtmlFile = function(htmlfile, checksfile, callback) {
+      loadHtmlData(htmlfile, function (data) {
+      var checks = loadChecks(checksfile).sort();
+      var out = {};
+      for(var ii in checks) {
+          var present = data(checks[ii]).length > 0;
+          out[checks[ii]] = present;
+      }
+      callback(out);
+    });
 };
 
 if(require.main == module) {
     program
-        .option('-c, --checks ', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
-        .option('-f, --file ', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
+        .option('-c, --checks <path> ', 'Path to checks.json', assertFileExists, CHECKSFILE_DEFAULT)
+        .option('-f, --file <path>', 'Path to index.html', assertFileExists, HTMLFILE_DEFAULT)
+        .option('-u, --url <url>', 'Url to index.html', assertValidUrl)
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.file, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+      var checkJson = checkHtmlFile(program.url || program.file, program.checks, function (checkJson) {
+      var outJson = JSON.stringify(checkJson, null, 4);
+      console.log(outJson);
+    });
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
