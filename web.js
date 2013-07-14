@@ -8,7 +8,7 @@ app.get('/', function(request, response) {
 });
 
 app.get('/original.html', function(request, response) {
-  var buffer = require('fs').readFileSync('./original.html');
+  var buffer = require('fs').readFileSync('./index.html.bak');
   response.send(buffer.toString());
 });
 
