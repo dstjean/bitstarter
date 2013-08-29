@@ -8,23 +8,33 @@ app.get('/', function(request, response) {
 });
 
 app.get('/img/AddRecipe.jpg', function(request, response) {
+	sendStaticFile(request, response, './img/AddRecipe.jpg');
+});
+
+
+app.get('/img/empty.jpg', function(request, response) {
+	sendStaticFile(request, response, './img/empty.jpg');
+});
+
+
+app.get('/img/idea.jpg', function(request, response) {
+	sendStaticFile(request, response, './img/idea.jpg');
+});
+
+
+function sendStaticFile(request, response, filename) {
   var fs = require('fs');
-  fs.stat('./img/AddRecipe.jpg', function (err, stat) {
+  fs.stat(filename, function (err, stat) {
     if (err) throw err;
-    var buffer = fs.readFileSync('./img/AddRecipe.jpg');
+    var buffer = fs.readFileSync(filename);
     response.setHeader('Content-Type', 'image/jpeg');
     response.setHeader('Content-Length', stat.size);
     response.end(buffer);
   });
-});
-
-app.get('/original.html', function(request, response) {
-  var buffer = require('fs').readFileSync('./index.html.bak');
-  response.send(buffer.toString());
-});
+};
 
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 8124;
 app.listen(port, function() {
   console.log("Listening on " + port);
 });
