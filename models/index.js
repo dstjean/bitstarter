@@ -1,13 +1,14 @@
+var config = require('../.env');
 if (!global.hasOwnProperty('db')) {
   var Sequelize = require('sequelize')
     , sequelize = null
 
     // the application is executed on the local machine ... use mysql
-      sequelize = new Sequelize('PrePlateHint', 'postgresinvite', 'testing', {
+      sequelize = new Sequelize(config.postgres.db, config.postgres.username, config.postgres.password, {
       dialect:  'postgres',
       protocol: 'postgres',
 //      port:     match[4], Default Port
-      host:     'localhost',
+      host:     config.postgres.host,
       logging:  function(log) {
 		console.log(log);
 	  },

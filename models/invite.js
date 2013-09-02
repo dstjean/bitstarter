@@ -19,7 +19,7 @@ module.exports = function(sequelize, DataTypes) {
 			allowNull: false,
 		}, payment_method: {
 			type: DataTypes.ENUM,
-			values: ['PayPal', 'BitCoin'],
+			values: ['paypal', 'bitcoin'],
 			allowNull: true,
 		},
 		createdAt: {

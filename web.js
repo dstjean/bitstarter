@@ -1,6 +1,8 @@
 var express = require('express');
 var app = express();
 var paypal = require('./paypal');
+app.enable('trust proxy');
+
 app.use(express.logger());
 app.use(express.bodyParser());
 app.get('/', function(request, response) {

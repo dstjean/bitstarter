@@ -8,7 +8,7 @@ var verify = function(req, res) {
       //Do stuff with original params here
   
       if (req.body.payment_status == 'Completed') {
-			db.Invite.findOrCreate({email: req.body.receiver_email || req.body.payer_email }, { request_date: new Date(), request_type: 'premium', payment_type: 'paypal' })
+			db.Invite.findOrCreate({email: req.body.receiver_email || req.body.payer_email }, { request_date: new Date(), request_type: 'premium', payment_method: 'paypal' })
 			.success(function(invite, created) {
 				if (created) {
 					res.statusCode = 200;
@@ -28,9 +28,12 @@ var verify = function(req, res) {
 				}
 			}).error(function (err) {
 				if (err.email) {
+					console.log(err);
 					res.statusCode = 400;
 					res.send(JSON.stringify({'message': err}));
 				} else {
+
+					console.log(err);
 					res.statusCode = 400;
 					res.send(JSON.stringify({"message" : err}));
 				}
