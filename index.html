@@ -186,6 +186,16 @@
 				</div>
 			</div>
 		  </div>
+		  <div class="row-fluid hide" id="inviteSuccessful">
+			<div class="span12" style="text-align:center; padding: 4px">
+				<div class="alert alert-success"></div>
+			</div>
+		  </div>
+		  <div class="row-fluid hide" id="inviteFailed">
+			<div class="span12" style="text-align:center; padding: 4px">
+				<div class="alert alert-danger"></div>
+			</div>
+		  </div>
 		  <div class="row-fluid hide" id="freeInvite">
 				<form id="freeInvite">
 				<div class="span10 offset2">
@@ -206,7 +216,7 @@
      </textarea>
      <input type="hidden" name="recaptcha_response_field"
          value="manual_challenge">
-  </noscript>
+		</noscript>
 			</div>
 			<div class="span12" style="text-align:center">
 					<button type="submit" class="btn btn-success">Submit</button>
@@ -224,17 +234,15 @@
                   Preorder with Bitcoin</a>
               <script src="https://coinbase.com/assets/button.js" type="text/javascript"></script>
 			  <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="SVVJ7S93XPCEQ">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
-</form>
-
+				<input type="hidden" name="cmd" value="_s-xclick">
+				<input type="hidden" name="hosted_button_id" value="SVVJ7S93XPCEQ">
+				<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+				<img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+			  </form>
 			<div class="span12" style="text-align:center">
 			    <button type="button" class="btn btn-danger cancelInvitation">Cancel</button>
 			</div>
-			
-	    </div>
+  	      </div>
           </div>
           <div class="row-fluid">
   	    <div class="span8 offset2 social">
@@ -351,30 +359,67 @@
       ga('create', 'UA-42965978-1', 'platehint.com');
       ga('send', 'pageview');
 
+	  
 	 $(document).ready(function() {
+		var showOnly = function (names) {
+			if (typeof names == "string") {
+				names = [names];
+			}
+			var controls = ['#inviteOptions', '#freeInvite', '#premiumInvite', '#inviteSuccessful', '#inviteFailed'];
+			for (i = 0; i < controls.length; i++) {
+				if (names.indexOf(controls[i]) != -1) {
+					$(controls[i]).show();
+				} else {
+					$(controls[i]).hide();
+				}
+			}
+		};
+
+	 
 		$('#premiumInviteButton').click(function() {
-			$('#inviteOptions').hide();
-			$('#freeInvite').hide();
-			$('#premiumInvite').show();
+			showOnly('#premiumInvite');
 		});
 		
 		$('#freeInviteButton').click(function() {
-			$('#inviteOptions').hide();
-			$('#freeInvite').show();
-			$('#premiumInvite').hide();
+			showOnly('#freeInvite');
 		});
 		
 		$('.cancelInvitation').click(function() {
-			$('#inviteOptions').show();
-			$('#freeInvite').hide();
-			$('#premiumInvite').hide();
+			showOnly('#inviteOptions');
 		});
 		
 		$('#freeInvite').submit(function (eventData) {
-			alert($('#freeInvite').serialize());
-			alert(Recaptcha.get_challenge());
-			alert(Recaptcha.get_response());
-			alert('clicked!');
+			var email = $('#email').val();
+			var response = Recaptcha.get_response();
+			if (email == '') {
+				alert ('Email required');
+				$('#email').focus();
+				return false;
+			}
+			
+			if (response == '') {
+				alert ('Challenge response required');
+				Recaptcha.focus_response_field()
+				return false;
+			}
+			$.ajax({
+				type:'POST',
+				url: '/invite',
+				data: {
+					email: email,
+					challenge: Recaptcha.get_challenge(),
+					response: Recaptcha.get_response()
+				}
+			}).done(function (data) {
+				data = JSON.parse(data);
+				$('#inviteSuccessful').find('.alert-success').html('Thank you! ' + data.message);
+				showOnly('#inviteSuccessful');
+			}).fail(function(err, data, data2) {
+				data = JSON.parse(err.responseText);
+				$('#inviteFailed').find('.alert-danger').html('Error! ' + data.message);
+				showOnly(['#inviteFailed', '#freeInvite']);
+				Recaptcha.reload();
+			});
 			return false;
 		});
 	 })
