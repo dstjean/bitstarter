@@ -13,7 +13,8 @@
     "commander": "*",
     "cheerio": "*",
     "restler": "*",
-    "request" : "*"
+    "request" : "*",
+    "paypal-ipn" : "*"
   },
   "engines": {
     "node": "0.10.13",

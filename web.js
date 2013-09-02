@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-
+var paypal = require('./paypal');
 app.use(express.logger());
 app.use(express.bodyParser());
 app.get('/', function(request, response) {
@@ -11,6 +11,9 @@ app.get('/', function(request, response) {
 var db = require('./models');
 var config = require('./.env');
 var request = require('request');
+
+app.post('/paypal/callback', paypal.verify);
+
 app.post('/invite', function(req, res) {
 	var data = {
 		privatekey: config.CAPTCHA_PRIVATE,
